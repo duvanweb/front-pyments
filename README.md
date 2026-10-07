@@ -7,7 +7,7 @@ SPA **mobile-first** de pagos construida como base de referencia con **Arquitect
 - **React + TypeScript** con **Vite**
 - **Tailwind CSS v4** — CSS-first (`@theme`), sin `tailwind.config.js`
 - **Redux Toolkit** (arquitectura Flux) + **redux-persist**
-- **Vitest** + jsdom
+- **Jest** + jest-environment-jsdom
 
 ## Arquitectura Hexagonal
 
