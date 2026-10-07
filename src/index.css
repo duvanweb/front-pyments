@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/*
+ * Tokens de diseño — Tailwind v4 es CSS-first: no existe tailwind.config.js
+ * ni postcss.config.js. Los tokens de @theme generan utilidades como
+ * bg-brand-500, text-brand-600, etc.
+ */
+@theme {
+  --color-brand-500: #4f46e5;
+  --color-brand-600: #4338ca;
+}
+
+/* Base mobile-first: fondo y tipografía por defecto de la app. */
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
