@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node10",
+    "allowImportingTsExtensions": false,
+    "noEmit": false
+  }
+}

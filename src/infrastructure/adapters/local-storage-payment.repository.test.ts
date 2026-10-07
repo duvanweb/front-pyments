@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import type { Transaction } from '@/domain/models/transaction';
 import { SafeStorage } from '../storage/safe-storage';
 import { LocalStoragePaymentRepository } from './local-storage-payment.repository';

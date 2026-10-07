@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 import type { PaymentRequest } from '../models/payment';
 import {
   DECLINE_THRESHOLD_IN_CENTS,
