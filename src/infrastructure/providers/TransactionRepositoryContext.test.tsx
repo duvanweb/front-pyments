@@ -9,7 +9,7 @@ import {
 
 describe('TransactionRepositoryContext', () => {
   it('provee el repositorio inyectado al hook', () => {
-    const mockRepository: TransactionRepository = { create: vi.fn() };
+    const mockRepository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
 
     const { result } = renderHook(() => useTransactionRepository(), {
       wrapper: ({ children }) => (
@@ -29,7 +29,7 @@ describe('TransactionRepositoryContext', () => {
   });
 
   it('renderiza children dentro del provider', () => {
-    const mockRepository: TransactionRepository = { create: vi.fn() };
+    const mockRepository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
     renderWithProviders(
       <TransactionRepositoryProvider repository={mockRepository}>
         <div data-testid="child">contenido</div>

@@ -6,6 +6,7 @@ import type { TransactionRepository } from '@/domain/ports/transaction-repositor
 function createMockRepository(): TransactionRepository {
   return {
     create: vi.fn(),
+    getById: vi.fn(),
   };
 }
 

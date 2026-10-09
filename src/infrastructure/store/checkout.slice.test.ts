@@ -21,6 +21,7 @@ describe('checkout.slice', () => {
     creditCard: { number: '', holder: '', expiry: '', cvv: '' },
     status: 'idle',
     transactionReference: null,
+    transactionId: null,
     error: null,
   };
 
@@ -88,10 +89,14 @@ describe('checkout.slice', () => {
   });
 
   describe('setSuccess', () => {
-    it('establece status success y la referencia', () => {
-      const state = checkoutReducer(initialState, setSuccess('REF-001'));
+    it('establece status success, la referencia y el transactionId', () => {
+      const state = checkoutReducer(
+        initialState,
+        setSuccess({ reference: 'REF-001', transactionId: 'tx-1' }),
+      );
       expect(state.status).toBe('success');
       expect(state.transactionReference).toBe('REF-001');
+      expect(state.transactionId).toBe('tx-1');
       expect(state.error).toBeNull();
     });
   });
@@ -110,6 +115,7 @@ describe('checkout.slice', () => {
         ...initialState,
         status: 'success',
         transactionReference: 'REF-001',
+        transactionId: 'tx-1',
         quantity: 5,
       };
       const state = checkoutReducer(modified, resetCheckout());

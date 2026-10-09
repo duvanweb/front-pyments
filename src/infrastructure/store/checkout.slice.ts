@@ -22,6 +22,8 @@ export interface CheckoutState {
   status: CheckoutStatus;
   /** Referencia de la transacción creada (visible al usuario). */
   transactionReference: string | null;
+  /** ID de la transacción en el backend (para consultar estado tras Wompi). */
+  transactionId: string | null;
   /** Mensaje de error si status === 'error'. */
   error: string | null;
 }
@@ -50,6 +52,7 @@ const initialState: CheckoutState = {
   },
   status: 'idle',
   transactionReference: null,
+  transactionId: null,
   error: null,
 };
 
@@ -72,6 +75,7 @@ const checkoutSlice = createSlice({
       state.status = 'form';
       state.error = null;
       state.transactionReference = null;
+      state.transactionId = null;
     },
     /** Actualiza parcialmente los datos del cliente. */
     updateCustomer(state, action: PayloadAction<Partial<CustomerData>>) {
@@ -95,9 +99,10 @@ const checkoutSlice = createSlice({
       state.error = null;
     },
     /** Transacción creada exitosamente. */
-    setSuccess(state, action: PayloadAction<string>) {
+    setSuccess(state, action: PayloadAction<{ reference: string; transactionId: string }>) {
       state.status = 'success';
-      state.transactionReference = action.payload;
+      state.transactionReference = action.payload.reference;
+      state.transactionId = action.payload.transactionId;
       state.error = null;
     },
     /** Error al crear la transacción. */

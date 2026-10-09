@@ -80,4 +80,64 @@ describe('ApiTransactionRepository', () => {
       'Error al crear la transacción: 500',
     );
   });
+
+  describe('getById', () => {
+    it('envía GET al endpoint correcto y retorna los detalles', async () => {
+      const mockDetails = {
+        id: 'tx-1',
+        status: 'APPROVED',
+        reference: 'REF-001',
+        productId: 'prod-1',
+        quantity: 1,
+        totalAmountInCents: 13000,
+        currency: 'COP',
+        wompiTransactionId: 'wompi-1',
+        customerId: 'cust-1',
+        createdAt: '2026-01-01T00:00:00Z',
+      };
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockDetails),
+        }),
+      );
+
+      const repo = new ApiTransactionRepository('http://localhost:3000/api');
+      const result = await repo.getById('tx-1');
+
+      expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/transactions/tx-1');
+      expect(result).toEqual(mockDetails);
+    });
+
+    it('lanza con el mensaje del backend si la respuesta no es ok', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 404,
+          json: () => Promise.resolve({ message: 'Transacción no encontrada' }),
+        }),
+      );
+
+      const repo = new ApiTransactionRepository();
+      await expect(repo.getById('tx-1')).rejects.toThrow('Transacción no encontrada');
+    });
+
+    it('lanza un mensaje genérico si el cuerpo no es JSON', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 500,
+          json: () => Promise.reject(new Error('not JSON')),
+        }),
+      );
+
+      const repo = new ApiTransactionRepository();
+      await expect(repo.getById('tx-1')).rejects.toThrow(
+        'Error al obtener la transacción: 500',
+      );
+    });
+  });
 });
