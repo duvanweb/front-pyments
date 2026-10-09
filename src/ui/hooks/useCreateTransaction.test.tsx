@@ -74,7 +74,7 @@ describe('useCreateTransaction', () => {
   });
 
   it('inicia con status idle', () => {
-    const repository: TransactionRepository = { create: vi.fn() };
+    const repository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
     const { Wrapper } = createWrapper(repository);
     const { result } = renderHook(() => useCreateTransaction(), { wrapper: Wrapper });
     expect(result.current.status).toBe('idle');
@@ -91,6 +91,7 @@ describe('useCreateTransaction', () => {
         reference: 'REF-001',
         checkoutUrl,
       }),
+      getById: vi.fn(),
     };
     const { Wrapper } = createWrapper(repository);
     const { result } = renderHook(() => useCreateTransaction(), { wrapper: Wrapper });
@@ -112,6 +113,7 @@ describe('useCreateTransaction', () => {
         reference: 'REF-001',
         checkoutUrl: '',
       }),
+      getById: vi.fn(),
     };
     const { Wrapper } = createWrapper(repository);
     const { result } = renderHook(() => useCreateTransaction(), { wrapper: Wrapper });
@@ -128,6 +130,7 @@ describe('useCreateTransaction', () => {
     const redirect = mockWindowLocation();
     const repository: TransactionRepository = {
       create: vi.fn().mockRejectedValue(new Error('Error de red')),
+      getById: vi.fn(),
     };
     const { Wrapper } = createWrapper(repository);
     const { result } = renderHook(() => useCreateTransaction(), { wrapper: Wrapper });
