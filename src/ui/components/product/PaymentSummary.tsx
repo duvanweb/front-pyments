@@ -9,8 +9,10 @@ interface PaymentSummaryProps {
   quantity: number;
   /** Si la transacción se está enviando. */
   loading: boolean;
-  /** Callback al hacer clic en Pagar. */
+  /** Callback al hacer clic en el botón. */
   onPay: () => void;
+  /** Texto del botón (default "Pagar"). */
+  buttonLabel?: string;
 }
 
 /** Formatea centavos como moneda COP. */
@@ -27,7 +29,7 @@ function formatCents(cents: number): string {
  * Muestra el monto del producto, tarifa base, tarifa de envío y total,
  * con el botón de pago.
  */
-export function PaymentSummary({ product, quantity, loading, onPay }: PaymentSummaryProps) {
+export function PaymentSummary({ product, quantity, loading, onPay, buttonLabel = 'Pagar' }: PaymentSummaryProps) {
   const unitPriceInCents = Math.round(product.price * 100);
   const productTotal = unitPriceInCents * quantity;
   const total = productTotal + BASE_FEE_IN_CENTS + SHIPPING_FEE_IN_CENTS;
@@ -78,7 +80,7 @@ export function PaymentSummary({ product, quantity, loading, onPay }: PaymentSum
         ) : (
           <>
             <Lock className="size-5" aria-hidden="true" />
-            Pagar
+            {buttonLabel}
           </>
         )}
       </button>
