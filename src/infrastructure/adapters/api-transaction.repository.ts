@@ -2,6 +2,7 @@ import type {
   CreateTransactionRequest,
   CreateTransactionResponse,
 } from '@/domain/models/transaction-request';
+import type { TransactionDetails } from '@/domain/models/transaction-details';
 import type { TransactionRepository } from '@/domain/ports/transaction-repository.port';
 
 const DEFAULT_BASE_URL = '/api';
@@ -39,5 +40,22 @@ export class ApiTransactionRepository implements TransactionRepository {
     }
 
     return (await response.json()) as CreateTransactionResponse;
+  }
+
+  async getById(id: string): Promise<TransactionDetails> {
+    const response = await fetch(`${this.baseUrl}/transactions/${id}`);
+
+    if (!response.ok) {
+      let message = `Error al obtener la transacción: ${response.status}`;
+      try {
+        const body = await response.json();
+        if (body?.message) message = body.message;
+      } catch {
+        // El cuerpo no es JSON — usar el mensaje genérico.
+      }
+      throw new Error(message);
+    }
+
+    return (await response.json()) as TransactionDetails;
   }
 }
