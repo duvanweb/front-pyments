@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ArrowLeft, Minus, PackageX, RefreshCw, ShoppingCart } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { Product } from '@/domain/models/product';
+import { resetCheckout, startCheckout } from '@/infrastructure/store/checkout.slice';
+import { useAppDispatch, useAppSelector } from '@/infrastructure/store/hooks';
 import { BuyModal } from '@/ui/components/product/BuyModal';
 import { QuantitySelector } from '@/ui/components/product/QuantitySelector';
 import { useGetProductById } from '@/ui/hooks/useGetProductById';
@@ -39,13 +41,18 @@ function ProductDetailSkeleton() {
 
 /** Vista de detalle con toda la información del producto y acciones de compra. */
 function ProductDetail({ product }: { product: Product }) {
+  const dispatch = useAppDispatch();
+  const checkout = useAppSelector((state) => state.checkout);
+
   const [quantity, setQuantity] = useState(1);
-  const [modalOpen, setModalOpen] = useState(false);
+  const checkoutActive = checkout.productId === product.id && checkout.status !== 'idle';
 
   const outOfStock = product.stock <= 0;
 
   // Si el stock cambia y la cantidad queda por encima, se reajusta al tope.
   const safeQuantity = Math.min(quantity, Math.max(1, product.stock));
+  // Cantidad a mostrar en el modal: la del checkout si está activo, sino la actual.
+  const modalQuantity = checkoutActive ? checkout.quantity : safeQuantity;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -102,7 +109,7 @@ function ProductDetail({ product }: { product: Product }) {
 
             <button
               type="button"
-              onClick={() => setModalOpen(true)}
+              onClick={() => dispatch(startCheckout({ productId: product.id, quantity: safeQuantity }))}
               disabled={outOfStock}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
             >
@@ -113,7 +120,12 @@ function ProductDetail({ product }: { product: Product }) {
         </div>
       </div>
 
-      <BuyModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <BuyModal
+        open={checkoutActive}
+        onClose={() => dispatch(resetCheckout())}
+        product={product}
+        quantity={modalQuantity}
+      />
     </div>
   );
 }
