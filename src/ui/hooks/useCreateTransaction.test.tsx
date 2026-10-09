@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import checkoutReducer from '@/infrastructure/store/checkout.slice';
@@ -46,7 +46,33 @@ function createWrapper(repository: TransactionRepository) {
   return { store, Wrapper };
 }
 
+/** Mock de window.location para capturar redirecciones. */
+function mockWindowLocation() {
+  const href = vi.fn();
+  const location = { ...window.location, set href(v: string) { href(v); } };
+  Object.defineProperty(window, 'location', {
+    value: location,
+    writable: true,
+    configurable: true,
+  });
+  return href;
+}
+
 describe('useCreateTransaction', () => {
+  let originalLocation: Location;
+
+  beforeEach(() => {
+    originalLocation = window.location;
+  });
+
+  afterEach(() => {
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true,
+    });
+  });
+
   it('inicia con status idle', () => {
     const repository: TransactionRepository = { create: vi.fn() };
     const { Wrapper } = createWrapper(repository);
@@ -56,12 +82,14 @@ describe('useCreateTransaction', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('dispatcha success cuando la transacción se crea correctamente', async () => {
+  it('dispatcha success y redirige a Wompi cuando la transacción se crea correctamente', async () => {
+    const redirect = mockWindowLocation();
+    const checkoutUrl = 'https://checkout.wompi.co/c/REF-001';
     const repository: TransactionRepository = {
       create: vi.fn().mockResolvedValue({
         transactionId: 'tx-1',
         reference: 'REF-001',
-        checkoutUrl: 'https://wompi.co/c/REF-001',
+        checkoutUrl,
       }),
     };
     const { Wrapper } = createWrapper(repository);
@@ -73,9 +101,31 @@ describe('useCreateTransaction', () => {
 
     expect(result.current.status).toBe('success');
     expect(result.current.transactionReference).toBe('REF-001');
+    expect(redirect).toHaveBeenCalledWith(checkoutUrl);
   });
 
-  it('dispatcha error cuando el repositorio falla', async () => {
+  it('no redirige si checkoutUrl está vacía', async () => {
+    const redirect = mockWindowLocation();
+    const repository: TransactionRepository = {
+      create: vi.fn().mockResolvedValue({
+        transactionId: 'tx-1',
+        reference: 'REF-001',
+        checkoutUrl: '',
+      }),
+    };
+    const { Wrapper } = createWrapper(repository);
+    const { result } = renderHook(() => useCreateTransaction(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.createTransaction(mockRequest);
+    });
+
+    expect(result.current.status).toBe('success');
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it('dispatcha error y no redirige cuando el repositorio falla', async () => {
+    const redirect = mockWindowLocation();
     const repository: TransactionRepository = {
       create: vi.fn().mockRejectedValue(new Error('Error de red')),
     };
@@ -90,5 +140,6 @@ describe('useCreateTransaction', () => {
       expect(result.current.status).toBe('error');
     });
     expect(result.current.error).toBe('Error de red');
+    expect(redirect).not.toHaveBeenCalled();
   });
 });

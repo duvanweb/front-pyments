@@ -37,6 +37,10 @@ export function useCreateTransaction(): UseCreateTransactionResult {
       try {
         const response = await new CreateTransaction(repository).execute(request);
         dispatch(setSuccess(response.reference));
+        // Redirigir a la página de checkout de Wompi generada por el backend.
+        if (response.checkoutUrl) {
+          window.location.href = response.checkoutUrl;
+        }
       } catch (err) {
         dispatch(
           setCheckoutError(err instanceof Error ? err.message : 'Error inesperado'),
