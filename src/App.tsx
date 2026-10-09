@@ -9,6 +9,7 @@ import { MobileLayout } from '@/ui/components/layouts/MobileLayout';
 import { PaymentPage } from '@/ui/pages/PaymentPage';
 import { ProductDetailPage } from '@/ui/pages/ProductDetailPage';
 import { ProductListPage } from '@/ui/pages/ProductListPage';
+import { TransactionResultPage } from '@/ui/pages/TransactionResultPage';
 
 /**
  * Raíz de la app: Redux Provider → PersistGate → DI providers → Router.
@@ -27,6 +28,7 @@ export default function App() {
                 <Routes>
                   <Route path="/" element={<ProductListPage />} />
                   <Route path="/products/:id" element={<ProductDetailPage />} />
+                  <Route path="/transaction/result" element={<TransactionResultPage />} />
                   <Route
                     path="/payment"
                     element={
