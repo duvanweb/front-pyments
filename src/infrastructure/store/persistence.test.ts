@@ -23,10 +23,10 @@ import paymentReducer, { setProcessing, type PaymentState } from './payment.slic
 const STORAGE_KEY = 'persist:front-pyments';
 
 /** migrate idéntico al de producción: preserva estado válido, descarta corrupto. */
-function migrate(state: unknown): Promise<unknown> {
+function migrate(state: unknown) {
   return Promise.resolve(
     state && typeof state === 'object' && 'payment' in state && 'checkout' in state
-      ? state
+      ? (state as any) // eslint-disable-line @typescript-eslint/no-explicit-any
       : undefined,
   );
 }
@@ -35,7 +35,7 @@ const persistConfig = {
   key: 'front-pyments',
   storage: persistStorage,
   version: 2,
-  whitelist: ['payment', 'checkout'] as const,
+  whitelist: ['payment', 'checkout'],
   migrate,
 };
 

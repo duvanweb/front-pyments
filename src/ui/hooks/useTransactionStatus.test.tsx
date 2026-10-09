@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import type { TransactionDetails } from '@/domain/models/transaction-details';
@@ -82,7 +82,7 @@ describe('useTransactionStatus', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
 
     const getById = vi
-      .fn<[string], Promise<TransactionDetails>>()
+      .fn()
       .mockResolvedValueOnce(mockDetails({ status: 'PENDING' }))
       .mockResolvedValueOnce(mockDetails({ status: 'PENDING' }))
       .mockResolvedValueOnce(mockDetails({ status: 'APPROVED' }));
@@ -118,7 +118,7 @@ describe('useTransactionStatus', () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
 
     const getById = vi
-      .fn<[string], Promise<TransactionDetails>>()
+      .fn()
       .mockResolvedValueOnce(mockDetails({ status: 'PENDING' }))
       .mockResolvedValueOnce(mockDetails({ status: 'DECLINED' }));
 

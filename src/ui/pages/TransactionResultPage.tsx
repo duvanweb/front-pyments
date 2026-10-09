@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Loader2, X, XCircle } from 'lucide-react';
+import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 import { useAppSelector } from '@/infrastructure/store/hooks';
 import { useTransactionStatus } from '@/ui/hooks/useTransactionStatus';
 

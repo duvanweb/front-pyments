@@ -39,7 +39,8 @@ const persistConfig = {
   migrate: (state: unknown) =>
     Promise.resolve(
       state && typeof state === 'object' && 'payment' in state && 'checkout' in state
-        ? state
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ? (state as any)
         : undefined,
     ),
 };

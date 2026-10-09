@@ -42,6 +42,7 @@ export function useTransactionStatus(transactionId: string | null): UseTransacti
       return;
     }
 
+    const id = transactionId;
     let cancelled = false;
     const startTime = Date.now();
 
@@ -56,7 +57,7 @@ export function useTransactionStatus(transactionId: string | null): UseTransacti
         }
 
         try {
-          const details = await repository.getById(transactionId);
+          const details = await repository.getById(id);
           if (cancelled || !mountedRef.current) return;
 
           setTransaction(details);
