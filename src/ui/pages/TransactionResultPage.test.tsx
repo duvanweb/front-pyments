@@ -101,7 +101,7 @@ describe('TransactionResultPage', () => {
       expect(screen.getByText('¡Pago aprobado!')).toBeInTheDocument();
     });
     expect(screen.getByText('REF-001')).toBeInTheDocument();
-    expect(screen.getByText('Ver producto')).toBeInTheDocument();
+    expect(screen.getByText('Finalizar')).toBeInTheDocument();
   });
 
   it('muestra pago rechazado cuando el estado es DECLINED', async () => {

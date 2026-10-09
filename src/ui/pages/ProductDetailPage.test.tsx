@@ -50,14 +50,14 @@ describe('ProductDetailPage', () => {
     expect(await screen.findByRole('heading', { name: mockProduct.title })).toBeInTheDocument();
     expect(screen.getByText(mockProduct.description)).toBeInTheDocument();
     expect(screen.getByText(/10 disponibles/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Comprar/ })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /Pagar con tarjeta de crédito/ })).toBeEnabled();
   });
 
   it('muestra "Agotado" y deshabilita Comprar cuando stock es 0', async () => {
     renderDetailPage(createMockRepository(outOfStockProduct));
 
     expect(await screen.findByText('Agotado')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Comprar/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Pagar con tarjeta de crédito/ })).toBeDisabled();
   });
 
   it('muestra el estado de error cuando falla la carga', async () => {

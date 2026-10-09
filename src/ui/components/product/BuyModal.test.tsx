@@ -16,7 +16,7 @@ const mockProduct: Product = {
 describe('BuyModal', () => {
   it('no renderiza nada cuando open es false', () => {
     renderWithProviders(
-      <BuyModal open={false} onClose={vi.fn()} product={mockProduct} quantity={1} />,
+      <BuyModal open={false} onClose={vi.fn()} onContinue={vi.fn()} product={mockProduct} quantity={1} />,
     );
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -24,7 +24,7 @@ describe('BuyModal', () => {
 
   it('renderiza el dialog cuando open es true', () => {
     renderWithProviders(
-      <BuyModal open={true} onClose={vi.fn()} product={mockProduct} quantity={1} />,
+      <BuyModal open={true} onClose={vi.fn()} onContinue={vi.fn()} product={mockProduct} quantity={1} />,
     );
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -34,7 +34,7 @@ describe('BuyModal', () => {
   it('llama a onClose al hacer clic en el botón X', () => {
     const onClose = vi.fn();
     renderWithProviders(
-      <BuyModal open={true} onClose={onClose} product={mockProduct} quantity={1} />,
+      <BuyModal open={true} onClose={onClose} onContinue={vi.fn()} product={mockProduct} quantity={1} />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar modal' }));
@@ -45,7 +45,7 @@ describe('BuyModal', () => {
   it('llama a onClose al presionar Escape', () => {
     const onClose = vi.fn();
     renderWithProviders(
-      <BuyModal open={true} onClose={onClose} product={mockProduct} quantity={1} />,
+      <BuyModal open={true} onClose={onClose} onContinue={vi.fn()} product={mockProduct} quantity={1} />,
     );
 
     fireEvent.keyDown(document, { key: 'Escape' });
@@ -56,7 +56,7 @@ describe('BuyModal', () => {
   it('no llama a onClose al presionar otra tecla', () => {
     const onClose = vi.fn();
     renderWithProviders(
-      <BuyModal open={true} onClose={onClose} product={mockProduct} quantity={1} />,
+      <BuyModal open={true} onClose={onClose} onContinue={vi.fn()} product={mockProduct} quantity={1} />,
     );
 
     fireEvent.keyDown(document, { key: 'Enter' });

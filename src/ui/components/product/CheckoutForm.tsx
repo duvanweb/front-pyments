@@ -10,25 +10,22 @@ import {
   validateShippingAddress,
 } from '@/domain/rules/checkout-validation.rules';
 import {
-  resetCheckout,
   updateCreditCard,
   updateCustomer,
   updateShippingAddress,
 } from '@/infrastructure/store/checkout.slice';
 import { useAppDispatch, useAppSelector } from '@/infrastructure/store/hooks';
-import { useCreateTransaction } from '@/ui/hooks/useCreateTransaction';
 import { CardNumberInput } from './CardNumberInput';
 import { FormField } from './FormField';
 import { PaymentSummary } from './PaymentSummary';
-import { TransactionResult } from './TransactionResult';
 
 interface CheckoutFormProps {
   /** Producto que se está comprando. */
   product: Product;
   /** Cantidad seleccionada. */
   quantity: number;
-  /** Callback al cerrar el modal. */
-  onClose: () => void;
+  /** Callback al continuar al resumen de compra. */
+  onContinue: () => void;
 }
 
 /** Clase base para inputs. */
@@ -46,11 +43,10 @@ const inputOkClass = 'border-stone-300';
  * Los datos se persisten en Redux (checkout slice) para sobrevivir recargas.
  * Al pagar, crea una transacción PENDIENTE vía POST /api/transactions.
  */
-export function CheckoutForm({ product, quantity, onClose }: CheckoutFormProps) {
+export function CheckoutForm({ product, quantity, onContinue }: CheckoutFormProps) {
   const dispatch = useAppDispatch();
-  const { customer, shippingAddress, creditCard, status, transactionReference, error } =
+  const { customer, shippingAddress, creditCard } =
     useAppSelector((state) => state.checkout);
-  const { createTransaction } = useCreateTransaction();
 
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -89,7 +85,7 @@ export function CheckoutForm({ product, quantity, onClose }: CheckoutFormProps) 
     dispatch(updateCreditCard({ [field]: value }));
   }
 
-  async function handlePay() {
+  function handleContinue() {
     setSubmitAttempted(true);
 
     const hasErrors =
@@ -99,36 +95,11 @@ export function CheckoutForm({ product, quantity, onClose }: CheckoutFormProps) 
 
     if (hasErrors) return;
 
-    await createTransaction({
-      productId: product.id,
-      quantity,
-      productPrice: product.price,
-      customer,
-      shippingAddress,
-    });
+    onContinue();
   }
-
-  function handleClose() {
-    dispatch(resetCheckout());
-    onClose();
-  }
-
-  // Pantalla de éxito: transacción creada.
-  if (status === 'success' && transactionReference) {
-    return <TransactionResult reference={transactionReference} onClose={handleClose} />;
-  }
-
-  const loading = status === 'submitting';
 
   return (
     <div className="space-y-6">
-      {/* Error global del backend */}
-      {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
-        </div>
-      )}
-
       {/* Sección 1: Datos del cliente */}
       <section className="space-y-3">
         <h3 className="font-display text-sm font-semibold uppercase tracking-wide text-stone-500">
@@ -372,7 +343,13 @@ export function CheckoutForm({ product, quantity, onClose }: CheckoutFormProps) 
       </section>
 
       {/* Sección 4: Resumen del pago */}
-      <PaymentSummary product={product} quantity={quantity} loading={loading} onPay={handlePay} />
+      <PaymentSummary
+        product={product}
+        quantity={quantity}
+        loading={false}
+        onPay={handleContinue}
+        buttonLabel="Continuar"
+      />
     </div>
   );
 }

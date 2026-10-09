@@ -53,4 +53,17 @@ describe('PaymentSummary', () => {
     expect(screen.getByText('Tarifa de envío')).toBeInTheDocument();
     expect(screen.getByText('Total')).toBeInTheDocument();
   });
+
+  it('usa buttonLabel personalizado cuando se proporciona', () => {
+    renderWithProviders(
+      <PaymentSummary
+        product={mockProduct}
+        quantity={1}
+        loading={false}
+        onPay={vi.fn()}
+        buttonLabel="Continuar"
+      />,
+    );
+    expect(screen.getByRole('button', { name: /Continuar/ })).toBeEnabled();
+  });
 });

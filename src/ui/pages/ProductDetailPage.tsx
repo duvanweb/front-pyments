@@ -5,6 +5,7 @@ import type { Product } from '@/domain/models/product';
 import { resetCheckout, startCheckout } from '@/infrastructure/store/checkout.slice';
 import { useAppDispatch, useAppSelector } from '@/infrastructure/store/hooks';
 import { BuyModal } from '@/ui/components/product/BuyModal';
+import { CheckoutSummaryModal } from '@/ui/components/product/CheckoutSummaryModal';
 import { QuantitySelector } from '@/ui/components/product/QuantitySelector';
 import { useGetProductById } from '@/ui/hooks/useGetProductById';
 
@@ -45,6 +46,7 @@ function ProductDetail({ product }: { product: Product }) {
   const checkout = useAppSelector((state) => state.checkout);
 
   const [quantity, setQuantity] = useState(1);
+  const [summaryOpen, setSummaryOpen] = useState(false);
   const checkoutActive = checkout.productId === product.id && checkout.status !== 'idle';
 
   const outOfStock = product.stock <= 0;
@@ -114,7 +116,7 @@ function ProductDetail({ product }: { product: Product }) {
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-stone-300 disabled:text-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
             >
               <ShoppingCart className="size-5" aria-hidden="true" />
-              Comprar
+              Pagar con tarjeta de crédito
             </button>
           </div>
         </div>
@@ -123,6 +125,14 @@ function ProductDetail({ product }: { product: Product }) {
       <BuyModal
         open={checkoutActive}
         onClose={() => dispatch(resetCheckout())}
+        onContinue={() => setSummaryOpen(true)}
+        product={product}
+        quantity={modalQuantity}
+      />
+
+      <CheckoutSummaryModal
+        open={summaryOpen}
+        onClose={() => setSummaryOpen(false)}
         product={product}
         quantity={modalQuantity}
       />

@@ -8,6 +8,8 @@ interface BuyModalProps {
   open: boolean;
   /** Callback al cerrar el modal. */
   onClose: () => void;
+  /** Callback al continuar al resumen de compra. */
+  onContinue: () => void;
   /** Producto que se está comprando. */
   product: Product;
   /** Cantidad seleccionada. */
@@ -21,7 +23,7 @@ interface BuyModalProps {
  * El contenido es el formulario de datos del cliente, envío, tarjeta
  * y resumen del pago.
  */
-export function BuyModal({ open, onClose, product, quantity }: BuyModalProps) {
+export function BuyModal({ open, onClose, onContinue, product, quantity }: BuyModalProps) {
   useEffect(() => {
     if (!open) return;
 
@@ -64,7 +66,7 @@ export function BuyModal({ open, onClose, product, quantity }: BuyModalProps) {
           Finalizar compra
         </h2>
 
-        <CheckoutForm product={product} quantity={quantity} onClose={onClose} />
+        <CheckoutForm product={product} quantity={quantity} onContinue={onContinue} />
       </div>
     </div>
   );

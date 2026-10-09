@@ -129,7 +129,7 @@ export function TransactionResultPage() {
       {transaction && (
         <ReferenceBox reference={transaction.reference} />
       )}
-      <RedirectButton productId={productId} countdown={countdown} label="Ver producto" />
+      <RedirectButton productId={productId} countdown={countdown} label="Finalizar" />
     </div>
   );
 }
