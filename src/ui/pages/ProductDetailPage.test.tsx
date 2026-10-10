@@ -136,4 +136,58 @@ describe('ProductDetailPage', () => {
     fireEvent.click(screen.getByLabelText('Volver al listado'));
     // navigate('/') is called — mocked via useNavigate
   });
+
+  it('opens BuyModal and closes it', async () => {
+    const repository: ProductRepository = {
+      findAll: vi.fn(),
+      findById: vi.fn().mockResolvedValue(mockProduct),
+    };
+    renderWithProviders(<ProductDetailPage />, { repository });
+
+    await waitFor(() => expect(screen.getByText('Pagar con tarjeta de crédito')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Pagar con tarjeta de crédito'));
+
+    await waitFor(() => expect(screen.getByText('Finalizar compra')).toBeInTheDocument());
+    fireEvent.click(screen.getByLabelText('Cerrar modal'));
+    // BuyModal onClose dispatches resetCheckout
+  });
+
+  it('opens BuyModal, fills form, continues to summary, and closes summary', async () => {
+    const repository: ProductRepository = {
+      findAll: vi.fn(),
+      findById: vi.fn().mockResolvedValue(mockProduct),
+    };
+    renderWithProviders(<ProductDetailPage />, { repository });
+
+    await waitFor(() => expect(screen.getByText('Pagar con tarjeta de crédito')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Pagar con tarjeta de crédito'));
+
+    await waitFor(() => expect(screen.getByText('Finalizar compra')).toBeInTheDocument());
+
+    // Fill customer fields
+    fireEvent.change(screen.getByPlaceholderText('cliente@example.com'), { target: { value: 'test@example.com' } });
+    fireEvent.change(screen.getByPlaceholderText('Juan Pérez'), { target: { value: 'Juan Pérez' } });
+    const phoneInputs = screen.getAllByPlaceholderText('3001234567');
+    fireEvent.change(phoneInputs[0], { target: { value: '3001234567' } });
+
+    // Fill shipping fields
+    fireEvent.change(screen.getByPlaceholderText('Calle 123 #45-67'), { target: { value: 'Calle 123' } });
+    fireEvent.change(screen.getByPlaceholderText('CO'), { target: { value: 'CO' } });
+    fireEvent.change(screen.getByPlaceholderText('Bogotá'), { target: { value: 'Bogotá' } });
+    fireEvent.change(screen.getByPlaceholderText('Cundinamarca'), { target: { value: 'Cundinamarca' } });
+
+    // Fill card fields
+    fireEvent.change(screen.getByPlaceholderText('4242 4242 4242 4242'), { target: { value: '4111111111111111' } });
+    fireEvent.change(screen.getByPlaceholderText('JUAN PEREZ'), { target: { value: 'JUAN PEREZ' } });
+    fireEvent.change(screen.getByPlaceholderText('MM/YY'), { target: { value: '12/30' } });
+    fireEvent.change(screen.getByPlaceholderText('123'), { target: { value: '123' } });
+
+    // Click Continuar to open CheckoutSummaryModal
+    fireEvent.click(screen.getByText('Continuar'));
+
+    await waitFor(() => expect(screen.getByText('Resumen de compra')).toBeInTheDocument());
+
+    // Close the summary modal — calls setSummaryOpen(false)
+    fireEvent.click(screen.getByText('Volver'));
+  });
 });
