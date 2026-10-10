@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -161,4 +161,65 @@ describe('TransactionResultPage', () => {
       { timeout: 8000 },
     );
   }, 10000);
+
+  it('limpia el checkout del store al auto-redirigir', async () => {
+    const repository: TransactionRepository = {
+      create: vi.fn(),
+      getById: vi.fn().mockResolvedValue(mockDetails({ status: 'APPROVED' })),
+    };
+    const store = createSeededStore();
+    renderPage(repository, store);
+
+    await waitFor(
+      () => {
+        expect(mockNavigate).toHaveBeenCalledWith('/products/prod-1', { replace: true });
+      },
+      { timeout: 8000 },
+    );
+
+    expect(store.getState().checkout.transactionId).toBeNull();
+    expect(store.getState().checkout.status).toBe('idle');
+  }, 10000);
+
+  it('limpia el checkout del store al click en "Finalizar"', async () => {
+    const repository: TransactionRepository = {
+      create: vi.fn(),
+      getById: vi.fn().mockResolvedValue(mockDetails({ status: 'APPROVED' })),
+    };
+    const store = createSeededStore();
+    renderPage(repository, store);
+
+    await waitFor(() => {
+      expect(screen.getByText('Finalizar')).toBeInTheDocument();
+    });
+
+    act(() => {
+      screen.getByText('Finalizar').click();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('/products/prod-1', { replace: true });
+    expect(store.getState().checkout.transactionId).toBeNull();
+    expect(store.getState().checkout.status).toBe('idle');
+  });
+
+  it('limpia el checkout del store al click en "Reintentar"', async () => {
+    const repository: TransactionRepository = {
+      create: vi.fn(),
+      getById: vi.fn().mockResolvedValue(mockDetails({ status: 'DECLINED' })),
+    };
+    const store = createSeededStore();
+    renderPage(repository, store);
+
+    await waitFor(() => {
+      expect(screen.getByText('Reintentar')).toBeInTheDocument();
+    });
+
+    act(() => {
+      screen.getByText('Reintentar').click();
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith('/products/prod-1', { replace: true });
+    expect(store.getState().checkout.transactionId).toBeNull();
+    expect(store.getState().checkout.status).toBe('idle');
+  });
 });

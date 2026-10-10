@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
-import { useAppSelector } from '@/infrastructure/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/infrastructure/store/hooks';
+import { resetCheckout } from '@/infrastructure/store/checkout.slice';
 import { useTransactionStatus } from '@/ui/hooks/useTransactionStatus';
 
 /** Segundos antes de auto-redirigir al producto. */
@@ -15,10 +16,17 @@ const AUTO_REDIRECT_SECONDS = 5;
  */
 export function TransactionResultPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { transactionId, productId } = useAppSelector((state) => state.checkout);
   const { status, transaction, loading, error } = useTransactionStatus(transactionId);
 
   const [countdown, setCountdown] = useState(AUTO_REDIRECT_SECONDS);
+
+  /** Limpia el checkout del store y redirige al producto. */
+  const finishAndRedirect = useCallback(() => {
+    dispatch(resetCheckout());
+    navigate(`/products/${productId}`, { replace: true });
+  }, [dispatch, navigate, productId]);
 
   // Si no hay transactionId, redirigir al home.
   useEffect(() => {
@@ -36,7 +44,7 @@ export function TransactionResultPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
-          navigate(`/products/${productId}`, { replace: true });
+          finishAndRedirect();
           return 0;
         }
         return prev - 1;
@@ -44,7 +52,7 @@ export function TransactionResultPage() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [status, loading, productId, navigate]);
+  }, [status, loading, productId, finishAndRedirect]);
 
   // Sin transactionId — el useEffect redirige.
   if (!transactionId) return null;
@@ -84,7 +92,7 @@ export function TransactionResultPage() {
         {transaction && (
           <ReferenceBox reference={transaction.reference} />
         )}
-        <RedirectButton productId={productId} countdown={countdown} />
+        <RedirectButton countdown={countdown} onRedirect={finishAndRedirect} />
       </div>
     );
   }
@@ -107,7 +115,7 @@ export function TransactionResultPage() {
         {transaction && (
           <ReferenceBox reference={transaction.reference} />
         )}
-        <RedirectButton productId={productId} countdown={countdown} label="Reintentar" />
+        <RedirectButton countdown={countdown} onRedirect={finishAndRedirect} label="Reintentar" />
       </div>
     );
   }
@@ -129,7 +137,7 @@ export function TransactionResultPage() {
       {transaction && (
         <ReferenceBox reference={transaction.reference} />
       )}
-      <RedirectButton productId={productId} countdown={countdown} label="Finalizar" />
+      <RedirectButton countdown={countdown} onRedirect={finishAndRedirect} label="Finalizar" />
     </div>
   );
 }
@@ -150,20 +158,18 @@ function ReferenceBox({ reference }: { reference: string }) {
 
 /** Botón de redirección con countdown. */
 function RedirectButton({
-  productId,
   countdown,
+  onRedirect,
   label = 'Volver al producto',
 }: {
-  productId: string | null;
   countdown: number;
+  onRedirect: () => void;
   label?: string;
 }) {
-  const navigate = useNavigate();
-
   return (
     <button
       type="button"
-      onClick={() => productId && navigate(`/products/${productId}`, { replace: true })}
+      onClick={onRedirect}
       className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-3 text-base font-semibold text-white transition-colors hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40"
     >
       {label}
