@@ -85,4 +85,38 @@ describe('CheckoutForm', () => {
     // be dispatched to both customer and shipping address in Redux.
     expect(phoneInputs[0]).toHaveValue('3009876543');
   });
+
+  it('shows field error on blur without submit', () => {
+    renderWithProviders(<CheckoutForm product={mockProduct} quantity={1} onContinue={vi.fn()} />);
+
+    const emailInput = screen.getByPlaceholderText('cliente@example.com');
+    fireEvent.blur(emailInput);
+
+    // After blur, the email field error should appear
+    expect(screen.getByText('El correo electrónico es obligatorio.')).toBeInTheDocument();
+  });
+
+  it('updates country field to uppercase', () => {
+    renderWithProviders(<CheckoutForm product={mockProduct} quantity={1} onContinue={vi.fn()} />);
+
+    const countryInput = screen.getByPlaceholderText('CO');
+    fireEvent.change(countryInput, { target: { value: 'co' } });
+    expect(countryInput).toHaveValue('CO');
+  });
+
+  it('formats expiry field with slash', () => {
+    renderWithProviders(<CheckoutForm product={mockProduct} quantity={1} onContinue={vi.fn()} />);
+
+    const expiryInput = screen.getByPlaceholderText('MM/YY');
+    fireEvent.change(expiryInput, { target: { value: '1230' } });
+    expect(expiryInput).toHaveValue('12/30');
+  });
+
+  it('filters non-digits in CVV', () => {
+    renderWithProviders(<CheckoutForm product={mockProduct} quantity={1} onContinue={vi.fn()} />);
+
+    const cvvInput = screen.getByPlaceholderText('123');
+    fireEvent.change(cvvInput, { target: { value: '12a3b' } });
+    expect(cvvInput).toHaveValue('123');
+  });
 });
