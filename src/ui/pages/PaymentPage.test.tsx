@@ -92,4 +92,50 @@ describe('PaymentPage', () => {
 
     vi.unstubAllGlobals();
   });
+
+  it('changes currency selector', () => {
+    const repository: PaymentRepository = {
+      getHistory: vi.fn().mockResolvedValue([]),
+      saveTransaction: vi.fn(),
+      clear: vi.fn(),
+    };
+    renderPage(repository);
+
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0], { target: { value: 'USD' } });
+    expect(selects[0]).toHaveValue('USD');
+  });
+
+  it('changes method selector', () => {
+    const repository: PaymentRepository = {
+      getHistory: vi.fn().mockResolvedValue([]),
+      saveTransaction: vi.fn(),
+      clear: vi.fn(),
+    };
+    renderPage(repository);
+
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[1], { target: { value: 'PSE' } });
+    expect(selects[1]).toHaveValue('PSE');
+  });
+
+  it('renders history items when available', async () => {
+    const mockTransactions = [
+      {
+        id: 'tx-1',
+        payment: { id: 'pay-1', amountInCents: 10000, currency: 'COP', method: 'CREDIT_CARD', createdAt: '2026-01-01T00:00:00Z' },
+        status: 'APPROVED',
+        updatedAt: '2026-01-01T00:00:00Z',
+      },
+    ];
+    const repository: PaymentRepository = {
+      getHistory: vi.fn().mockResolvedValue(mockTransactions),
+      saveTransaction: vi.fn(),
+      clear: vi.fn(),
+    };
+    renderPage(repository);
+
+    await waitFor(() => expect(screen.getByText('Aprobada')).toBeInTheDocument());
+    expect(screen.queryByText('Aún no hay transacciones.')).not.toBeInTheDocument();
+  });
 });
