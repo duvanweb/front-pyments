@@ -45,6 +45,11 @@ const persistConfig = {
     ),
 };
 
+/** Exported for testing. */
+export function migrate(state: unknown): Promise<unknown> {
+  return persistConfig.migrate(state);
+}
+
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
