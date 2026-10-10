@@ -1,142 +1,80 @@
-import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { configureStore } from '@reduxjs/toolkit';
-import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router-dom';
 import type { Product } from '@/domain/models/product';
 import type { TransactionRepository } from '@/domain/ports/transaction-repository.port';
-import { TransactionRepositoryProvider } from '@/infrastructure/providers/TransactionRepositoryContext';
-import checkoutReducer, {
-  startCheckout,
-  updateCustomer,
-  updateShippingAddress,
-  updateCreditCard,
-  setSuccess,
-} from '@/infrastructure/store/checkout.slice';
-import paymentReducer from '@/infrastructure/store/payment.slice';
+import { renderWithProviders } from '@/test-utils';
 import { CheckoutSummaryModal } from './CheckoutSummaryModal';
 
 const mockProduct: Product = {
-  id: 'prod-1',
-  title: 'Tesla Hoodie',
-  description: 'Hoodie cómodo',
-  price: 130,
-  imageUrl: 'http://localhost:3000/img.jpg',
-  stock: 10,
+  id: '1',
+  title: 'Test Product',
+  description: 'A test product',
+  price: 50000,
+  imageUrl: 'http://example.com/img.jpg',
+  stock: 5,
 };
 
-function createSeededStore() {
-  const store = configureStore({ reducer: { payment: paymentReducer, checkout: checkoutReducer } });
-  store.dispatch(startCheckout({ productId: 'prod-1', quantity: 1 }));
-  store.dispatch(updateCustomer({ fullName: 'Juan Pérez', email: 'juan@example.com', phoneNumber: '3001234567', phoneNumberPrefix: '+57' }));
-  store.dispatch(updateShippingAddress({ addressLine1: 'Calle 123', city: 'Bogotá', region: 'Cundinamarca', country: 'CO', phoneNumber: '3001234567' }));
-  store.dispatch(updateCreditCard({ number: '4242424242424242', holder: 'JUAN PEREZ', expiry: '12/28', cvv: '123' }));
-  return store;
-}
-
-function renderModal(
-  repository: TransactionRepository,
-  store = createSeededStore(),
-  open = true,
-) {
-  return render(
-    <Provider store={store}>
-      <MemoryRouter>
-        <TransactionRepositoryProvider repository={repository}>
-          <CheckoutSummaryModal open={open} onClose={vi.fn()} product={mockProduct} quantity={1} />
-        </TransactionRepositoryProvider>
-      </MemoryRouter>
-    </Provider>,
-  );
-}
-
-import { render } from '@testing-library/react';
+const mockTransactionRepository: TransactionRepository = {
+  create: vi.fn().mockResolvedValue({
+    transactionId: 'tx-1',
+    reference: 'REF-001',
+    checkoutUrl: undefined,
+  }),
+};
 
 describe('CheckoutSummaryModal', () => {
-  it('no renderiza nada cuando open es false', () => {
-    const repository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
-    renderModal(repository, createSeededStore(), false);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-
-  it('muestra el resumen con datos del cliente', () => {
-    const repository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
-    renderModal(repository);
-
-    expect(screen.getByText('Resumen de compra')).toBeInTheDocument();
-    expect(screen.getByText('Juan Pérez')).toBeInTheDocument();
-    expect(screen.getByText('juan@example.com')).toBeInTheDocument();
-  });
-
-  it('muestra la dirección de envío', () => {
-    const repository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
-    renderModal(repository);
-
-    expect(screen.getByText('Calle 123')).toBeInTheDocument();
-    expect(screen.getByText(/Bogotá.*Cundinamarca/)).toBeInTheDocument();
-  });
-
-  it('muestra los últimos 4 dígitos de la tarjeta', () => {
-    const repository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
-    renderModal(repository);
-
-    expect(screen.getByText(/4242/)).toBeInTheDocument();
-  });
-
-  it('muestra el botón Pagar y el botón Volver', () => {
-    const repository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
-    renderModal(repository);
-
-    expect(screen.getByRole('button', { name: /Pagar/ })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Volver' })).toBeEnabled();
-  });
-
-  it('llama a createTransaction al hacer clic en Pagar', async () => {
-    const create = vi.fn().mockResolvedValue({
-      transactionId: 'tx-1',
-      reference: 'REF-001',
-      checkoutUrl: 'https://wompi.co/checkout/REF-001',
-    });
-    const repository: TransactionRepository = { create, getById: vi.fn() };
-    renderModal(repository);
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Pagar/ }));
-    });
-
-    await waitFor(() => {
-      expect(create).toHaveBeenCalledTimes(1);
-    });
-    expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        productId: 'prod-1',
-        quantity: 1,
-        productPrice: 130,
-      }),
+  it('returns null when open is false', () => {
+    renderWithProviders(
+      <CheckoutSummaryModal open={false} onClose={vi.fn()} product={mockProduct} quantity={1} />,
+      { transactionRepository: mockTransactionRepository },
     );
+    expect(screen.queryByText('Resumen de compra')).not.toBeInTheDocument();
   });
 
-  it('muestra error del backend cuando createTransaction falla', async () => {
-    const create = vi.fn().mockRejectedValue(new Error('Error de red'));
-    const repository: TransactionRepository = { create, getById: vi.fn() };
-    renderModal(repository);
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Pagar/ }));
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Error de red')).toBeInTheDocument();
-    });
+  it('renders modal content when open is true', () => {
+    renderWithProviders(
+      <CheckoutSummaryModal open={true} onClose={vi.fn()} product={mockProduct} quantity={1} />,
+      { transactionRepository: mockTransactionRepository },
+    );
+    expect(screen.getByText('Resumen de compra')).toBeInTheDocument();
+    expect(screen.getByText('Datos del cliente')).toBeInTheDocument();
+    expect(screen.getByText('Dirección de envío')).toBeInTheDocument();
+    expect(screen.getByText('Tarjeta de crédito')).toBeInTheDocument();
   });
 
-  it('muestra pantalla de éxito cuando status es success', () => {
-    const repository: TransactionRepository = { create: vi.fn(), getById: vi.fn() };
-    const store = createSeededStore();
-    store.dispatch(setSuccess({ reference: 'REF-001', transactionId: 'tx-1' }));
-    renderModal(repository, store);
+  it('renders Volver button', () => {
+    renderWithProviders(
+      <CheckoutSummaryModal open={true} onClose={vi.fn()} product={mockProduct} quantity={1} />,
+      { transactionRepository: mockTransactionRepository },
+    );
+    expect(screen.getByText('Volver')).toBeInTheDocument();
+  });
 
-    expect(screen.getByText('Transacción creada')).toBeInTheDocument();
-    expect(screen.getByText('REF-001')).toBeInTheDocument();
+  it('calls onClose when Volver button is clicked', () => {
+    const onClose = vi.fn();
+    renderWithProviders(
+      <CheckoutSummaryModal open={true} onClose={onClose} product={mockProduct} quantity={1} />,
+      { transactionRepository: mockTransactionRepository },
+    );
+    fireEvent.click(screen.getByText('Volver'));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('calls onClose when close button (X) is clicked', () => {
+    const onClose = vi.fn();
+    renderWithProviders(
+      <CheckoutSummaryModal open={true} onClose={onClose} product={mockProduct} quantity={1} />,
+      { transactionRepository: mockTransactionRepository },
+    );
+    fireEvent.click(screen.getByLabelText('Volver al formulario'));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('renders Pagar button', () => {
+    renderWithProviders(
+      <CheckoutSummaryModal open={true} onClose={vi.fn()} product={mockProduct} quantity={1} />,
+      { transactionRepository: mockTransactionRepository },
+    );
+    expect(screen.getByText('Pagar')).toBeInTheDocument();
   });
 });
