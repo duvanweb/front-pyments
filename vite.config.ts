@@ -23,5 +23,27 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './vitest.setup.ts',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'text-summary', 'lcov'],
+      include: ['src/**/*.ts', 'src/**/*.tsx'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*.test.tsx',
+        'src/main.tsx',
+        'src/App.tsx',
+        'src/test-utils.tsx',
+        'src/**/*.d.ts',
+        'src/domain/models/**/*.ts',
+        'src/domain/ports/**/*.ts',
+        'src/infrastructure/store/hooks.ts',
+      ],
+      thresholds: {
+        statements: 90,
+        branches: 80,
+        functions: 90,
+        lines: 90,
+      },
+    },
   },
 });
