@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: front-pyments
+    runtime: static
+    buildCommand: npm install && npm run build
+    static:
+      publishDirectory: dist
+      redirects:
+        - source: /*
+          destination: /index.html
+          status: 200
