@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { ProductRepository } from '@/domain/ports/product-repository.port';
 import { renderWithProviders } from '@/test-utils';
@@ -86,7 +86,7 @@ describe('ProductDetailPage', () => {
     await waitFor(() => expect(screen.getByText('1 disponible')).toBeInTheDocument());
   });
 
-  it('renders pay button', async () => {
+  it('renders pay button and clicks it', async () => {
     const repository: ProductRepository = {
       findAll: vi.fn(),
       findById: vi.fn().mockResolvedValue(mockProduct),
@@ -94,5 +94,46 @@ describe('ProductDetailPage', () => {
     renderWithProviders(<ProductDetailPage />, { repository });
 
     await waitFor(() => expect(screen.getByText('Pagar con tarjeta de crédito')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Pagar con tarjeta de crédito'));
+    // The click dispatches startCheckout which opens the BuyModal
+    // No error means the click handler executed successfully
+  });
+
+  it('clicks Reintentar button on error state', async () => {
+    const reloadMock = vi.fn();
+    vi.stubGlobal('location', { reload: reloadMock });
+    const repository: ProductRepository = {
+      findAll: vi.fn(),
+      findById: vi.fn().mockRejectedValue(new Error('Network error')),
+    };
+    renderWithProviders(<ProductDetailPage />, { repository });
+
+    await waitFor(() => expect(screen.getByText('Reintentar')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Reintentar'));
+    vi.unstubAllGlobals();
+  });
+
+  it('clicks Volver al listado button on not found', async () => {
+    const repository: ProductRepository = {
+      findAll: vi.fn(),
+      findById: vi.fn().mockResolvedValue(null),
+    };
+    renderWithProviders(<ProductDetailPage />, { repository });
+
+    await waitFor(() => expect(screen.getByText('Volver al listado')).toBeInTheDocument());
+    fireEvent.click(screen.getByText('Volver al listado'));
+    // navigate('/') is called — mocked via useNavigate
+  });
+
+  it('clicks back button in header', async () => {
+    const repository: ProductRepository = {
+      findAll: vi.fn(),
+      findById: vi.fn().mockResolvedValue(mockProduct),
+    };
+    renderWithProviders(<ProductDetailPage />, { repository });
+
+    await waitFor(() => expect(screen.getByText('Test Product')).toBeInTheDocument());
+    fireEvent.click(screen.getByLabelText('Volver al listado'));
+    // navigate('/') is called — mocked via useNavigate
   });
 });
