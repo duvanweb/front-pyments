@@ -42,4 +42,16 @@ describe('PaymentRepositoryContext', () => {
     );
     expect(screen.getByTestId('child')).toBeInTheDocument();
   });
+
+  it('creates a default repository when no repository is provided', () => {
+    const { result } = renderHook(() => usePaymentRepository(), {
+      wrapper: ({ children }) => (
+        <PaymentRepositoryProvider>{children}</PaymentRepositoryProvider>
+      ),
+    });
+    expect(result.current).toBeDefined();
+    expect(result.current.getHistory).toBeDefined();
+    expect(result.current.saveTransaction).toBeDefined();
+    expect(result.current.clear).toBeDefined();
+  });
 });
